@@ -6,13 +6,13 @@ TARGET    := MekanismJava
 SOURCES   := main.c
 
 CFLAGS    := -O2 -Wall -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -D__SWITCH__
-# On définit les bibliothèques séparément pour les mettre à la FIN
+# On place les bibliothèques ici pour les forcer à la FIN de la commande
 LIBS      := -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib -lnx
 
 all:
-	@# L'ORDRE ICI EST VITAL: $(SOURCES) avant $(LIBS)
+	@# Commande critique : SOURCES d'abord, LIBS après
 	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET).elf $(LIBS)
-	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism C" --author="Dev"
+	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism Java" --author="Dev"
 
 clean:
 	rm -f *.elf *.nro
