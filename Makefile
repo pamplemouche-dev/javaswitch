@@ -1,23 +1,20 @@
 DEVKITPRO := /opt/devkitpro
 CC        := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-gcc
-OBJCOPY   := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-objcopy
 NRO       := $(DEVKITPRO)/tools/bin/elf2nro
 
-TARGET    := MekanismJava
+TARGET    := MekanismLauncher
 SOURCES   := main.c
-DATA      := config_default.json
 
-# Inclusion des dossiers de la bibliothèque Switch
-CFLAGS    := -O2 -Wall -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -D__SWITCH__ -I$(DEVKITPRO)/libnx/include
-LDFLAGS   := -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib
+# Ajout des bibliothèques graphiques
+CFLAGS    := -O2 -Wall -I$(DEVKITPRO)/libnx/include -I$(DEVKITPRO)/portlibs/switch/include
+LDFLAGS   := -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib -L$(DEVKITPRO)/portlibs/switch/lib
+
+# L'ordre des LIBS est crucial pour le Linker !
+LIBS      := -lSDL2_image -lSDL2 -lpng -ljpeg -lz -lnx
 
 all:
-	@# 1. Préparation du JSON
-	$(OBJCOPY) -I binary -O elf64-littleaarch64 -B aarch64 $(DATA) config_data.o
-	@# 2. Compilation et Lien (SOURCES avant LIBS)
-	$(CC) $(CFLAGS) $(SOURCES) config_data.o -o $(TARGET).elf $(LDFLAGS) -lnx
-	@# 3. Création du fichier final pour la console
-	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism Java" --author="Dev"
+	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET).elf $(LDFLAGS) $(LIBS)
+	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism Launcher" --author="Pamplemouche"
 
 clean:
-	rm -f *.elf *.nro *.o
+	rm -f *.elf *.nro
