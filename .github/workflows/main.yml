@@ -8,17 +8,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Components
+      - name: Compile Native NSP Components
         run: |
-          # On ajoute manuellement le dossier des outils au PATH
+          # 1. On définit les chemins pour que la Switch comprenne
           export PATH=$PATH:/opt/devkitpro/tools/bin
-          make clean
-          make
+          export DEVKITPRO=/opt/devkitpro
+          
+          # 2. On crée l'identité du jeu (le cerveau)
+          /opt/devkitpro/tools/bin/nacp -c --name "Mekanism" --author "Pamplemouche" --version "1.0.0" Mekanism.nacp
+          
+          # 3. On compile le code (le moteur)
+          /opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc -O2 -Wall -I/opt/devkitpro/libnx/include main.c -o Mekanism.elf -specs=/opt/devkitpro/libnx/switch.specs -L/opt/devkitpro/libnx/lib -lnx
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Mekanism-NSP-Files
+          name: Mekanism-NSP-Parts
           path: |
             Mekanism.elf
             Mekanism.nacp
