@@ -8,21 +8,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compile Native NSP Components
+      - name: Install Tools and Compile
         run: |
-          # 1. On localise les outils dynamiquement pour éviter les erreurs de chemin
-          NACP_PATH=$(find /opt/devkitpro -name nacp -type f | head -n 1)
-          GCC_PATH=$(find /opt/devkitpro -name aarch64-none-elf-gcc -type f | head -n 1)
+          # 1. On force la mise à jour et l'installation de nacp
+          sudo dkp-pacman -Syyu --noconfirm
+          sudo dkp-pacman -S --noconfirm switch-tools
           
-          echo "Outil NACP trouvé ici : $NACP_PATH"
-          echo "Outil GCC trouvé ici : $GCC_PATH"
-
-          # 2. Génération de l'identité du jeu (NACP)
-          $NACP_PATH -c --name "Mekanism" --author "Pamplemouche" --version "1.0.0" Mekanism.nacp
+          # 2. On définit les chemins
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITA64=$DEVKITPRO/devkitA64
+          export PATH=$PATH:$DEVKITPRO/tools/bin:$DEVKITA64/bin
           
-          # 3. Compilation du binaire (ELF)
-          # On ajoute les dossiers d'inclusion libnx
-          $GCC_PATH -O2 -Wall -I/opt/devkitpro/libnx/include main.c -o Mekanism.elf -specs=/opt/devkitpro/libnx/switch.specs -L/opt/devkitpro/libnx/lib -lnx
+          # 3. Génération du NACP (L'identité du jeu)
+          # On l'appelle par son nom maintenant qu'il est installé proprement
+          nacp -c --name "Mekanism" --author "Pamplemouche" --version "1.0.0" Mekanism.nacp
+          
+          # 4. Compilation du binaire (ELF)
+          aarch64-none-elf-gcc -O2 -Wall -I$DEVKITPRO/libnx/include main.c -o Mekanism.elf -specs=$DEVKITPRO/libnx/switch.specs -L$DEVKITPRO/libnx/lib -lnx
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
