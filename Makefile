@@ -1,21 +1,17 @@
 DEVKITPRO := /opt/devkitpro
-DEVKITA64 := $(DEVKITPRO)/devkitA64
-LIBNX     := $(DEVKITPRO)/libnx
-
-CXX       := $(DEVKITA64)/bin/aarch64-none-elf-g++
+CC        := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-gcc
 NRO       := $(DEVKITPRO)/tools/bin/elf2nro
 
 TARGET    := MekanismJava
+SOURCES   := main.c
+
+# On utilise CFLAGS au lieu de CXXFLAGS
+CFLAGS    := -O2 -Wall -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -D__SWITCH__
+LIBS      := -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib -lnx
 
 all:
-	$(CXX) -O2 -Wall -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE \
-	main.cpp \
-	-I$(LIBNX)/include \
-	-L$(LIBNX)/lib \
-	-specs=$(LIBNX)/switch.specs \
-	-o $(TARGET).elf \
-	-Wl,--whole-archive -lnx -Wl,--no-whole-archive
-	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism Java" --author="Dev"
+	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET).elf $(LIBS)
+	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism C" --author="Dev"
 
 clean:
 	rm -f *.elf *.nro
