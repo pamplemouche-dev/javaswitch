@@ -1,53 +1,45 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <switch.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 
-// L'en-tête magique qui contient toutes les fonctions de la Switch
-#include <switch.h> 
-
-// Récupération du JSON intégré (config_default.json)
-extern const uint8_t _binary_config_default_json_start[];
-extern const uint8_t _binary_config_default_json_end[];
-
-int main(int argc, char **argv) {
-    // Initialisation des services graphiques et de la console texte
-    gfxInitDefault();
-    consoleInit(NULL);
-
-    // Calcul de la taille du JSON
-    size_t config_size = _binary_config_default_json_end - _binary_config_default_json_start;
-
-    printf("\x1b[1;32m[MEKANISM JAVA LAUNCHER]\x1b[0m\n");
-    printf("Statut : Liaison dynamique avec Horizon OS OK\n");
-    printf("--------------------------------------------\n");
+int main(int argc, char* argv[]) {
+    // Initialisation de la Switch et de la Vidéo
+    romfsInit();
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
     
-    printf("Chargement de la configuration interne...\n\n");
+    SDL_Window* window = SDL_CreateWindow("Mekanism Launcher", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, 0);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    // Affichage du contenu du JSON pour vérifier que tout est là
-    for(size_t i = 0; i < config_size; i++) {
-        putchar(_binary_config_default_json_start[i]);
+    // --- ACCÈS CARTE SD ---
+    FILE *file = fopen("sdmc:/MekanismLauncher/launcher.json", "r");
+    if (file) {
+        // Code pour lire tes mods ici
+        fclose(file);
     }
 
-    printf("\n\n\x1b[1;33m[INFO]\x1b[0m Pret pour Minecraft 1.16.5.\n");
-    printf("\x1b[1;33m[INFO]\x1b[0m Appuyez sur (+) pour quitter le launcher.\n");
+    int running = 1;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) running = 0;
+            if (event.type == SDL_JOYBUTTONDOWN) {
+                if (event.jbutton.button == 10) running = 0; // Touche (+)
+            }
+        }
 
-    // Boucle principale : tourne tant que l'app n'est pas fermée
-    while (appletMainLoop()) {
-        // Scan des entrées (manettes/joycons)
-        hidScanInput();
+        // --- DESSIN DE L'INTERFACE ---
+        SDL_SetRenderDrawColor(renderer, 34, 34, 34, 255); // Gris foncé Minecraft
+        SDL_RenderClear(renderer);
+        
+        // Ici on pourra ajouter : SDL_RenderCopy(renderer, texture_bouton, NULL, &rect);
 
-        // Récupération des touches pressées sur le contrôleur principal
-        u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-        // Si on appuie sur (+), on sort de la boucle
-        if (kDown & KEY_PLUS) break;
-
-        // Mise à jour de l'affichage console
-        consoleUpdate(NULL);
+        SDL_RenderPresent(renderer);
     }
 
-    // Nettoyage avant de quitter (très important pour éviter les bugs)
-    gfxExit();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    romfsExit();
     return 0;
 }
