@@ -14,7 +14,7 @@ all:
 	-L$(LIBNX)/lib \
 	-specs=$(LIBNX)/switch.specs \
 	-o $(TARGET).elf \
-	-lnx
+	-Wl,--whole-archive -lnx -Wl,--no-whole-archive
 	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism Java" --author="Dev"
 
 clean:
