@@ -4,7 +4,7 @@
 #include <dirent.h>
 
 int main(int argc, char **argv) {
-    // Initialisation graphique
+    // Initialisation du mode graphique natif
     gfxInitDefault();
     consoleInit(NULL);
 
