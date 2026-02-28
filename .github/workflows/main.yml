@@ -1,4 +1,4 @@
-name: Build Mekanism Native NSP
+name: Mekanism Native NSP Build
 on: [push]
 jobs:
   build:
@@ -7,11 +7,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Build Components
         run: |
-          export PATH=/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin:$PATH
+          # On ajoute manuellement le dossier des outils au PATH
+          export PATH=$PATH:/opt/devkitpro/tools/bin
           make clean
           make
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
