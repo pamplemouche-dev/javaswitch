@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application>
+  <title>
+    <language>AmericanEnglish</language>
+    <name>PojavLauncher</name>
+    <publisher>Pamplemouche-dev</publisher>
+  </title>
+  <version>1.0.0</version>
+  <display_version>1.0.0</display_version>
+  <is_retail>false</is_retail>
+  <release_user_id>0x0000000000000000</release_user_id>
+  <logo_type>LicensedByNintendo</logo_type>
+  <attribute>None</attribute>
+</application>
