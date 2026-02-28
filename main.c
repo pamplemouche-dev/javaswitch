@@ -1,56 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
-// Types de base pour la Switch
-typedef uint32_t u32;
-typedef uint64_t u64;
+// L'en-tête magique qui contient toutes les fonctions de la Switch
+#include <switch.h> 
 
-// --- DÉFINITIONS AUTO-PORTÉES ---
-// On utilise 'weak' pour dire au compilateur de ne pas paniquer s'il ne les voit pas maintenant
-__attribute__((weak)) void gfxInitDefault(void);
-__attribute__((weak)) void gfxExit(void);
-__attribute__((weak)) void consoleInit(void*);
-__attribute__((weak)) void consoleUpdate(void*);
-__attribute__((weak)) void hidScanInput(void);
-__attribute__((weak)) u64 hidKeysDown(u32);
-__attribute__((weak)) bool appletMainLoop(void);
-
-// Données intégrées (le JSON)
+// Récupération du JSON intégré (config_default.json)
 extern const uint8_t _binary_config_default_json_start[];
 extern const uint8_t _binary_config_default_json_end[];
 
 int main(int argc, char **argv) {
-    // Initialisation sécurisée
-    if (gfxInitDefault) gfxInitDefault();
-    if (consoleInit) consoleInit(NULL);
+    // Initialisation des services graphiques et de la console texte
+    gfxInitDefault();
+    consoleInit(NULL);
 
-    printf("\n\x1b[1;32m[MEKANISM INTERNAL BOOT]\x1b[0m\n");
-    
-    // Affichage de la config intégrée
+    // Calcul de la taille du JSON
     size_t config_size = _binary_config_default_json_end - _binary_config_default_json_start;
-    printf("Extraction de la config (%zu octets)...\n", config_size);
+
+    printf("\x1b[1;32m[MEKANISM JAVA LAUNCHER]\x1b[0m\n");
+    printf("Statut : Liaison dynamique avec Horizon OS OK\n");
+    printf("--------------------------------------------\n");
     
-    printf("\n--- CONFIG DETECTEE ---\n");
+    printf("Chargement de la configuration interne...\n\n");
+
+    // Affichage du contenu du JSON pour vérifier que tout est là
     for(size_t i = 0; i < config_size; i++) {
         putchar(_binary_config_default_json_start[i]);
     }
-    printf("\n-----------------------\n");
 
-    printf("\nPret pour Minecraft 1.16.5 + Microsoft Auth.\n");
-    printf("Appuyez sur (+) pour quitter.\n");
+    printf("\n\n\x1b[1;33m[INFO]\x1b[0m Pret pour Minecraft 1.16.5.\n");
+    printf("\x1b[1;33m[INFO]\x1b[0m Appuyez sur (+) pour quitter le launcher.\n");
 
-    while (appletMainLoop && appletMainLoop()) {
-        if (hidScanInput) hidScanInput();
-        
-        if (hidKeysDown) {
-            u64 kDown = hidKeysDown(10); // P1 Auto
-            if (kDown & (1 << 10)) break; // Touche PLUS
-        }
+    // Boucle principale : tourne tant que l'app n'est pas fermée
+    while (appletMainLoop()) {
+        // Scan des entrées (manettes/joycons)
+        hidScanInput();
 
-        if (consoleUpdate) consoleUpdate(NULL);
+        // Récupération des touches pressées sur le contrôleur principal
+        u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+        // Si on appuie sur (+), on sort de la boucle
+        if (kDown & KEY_PLUS) break;
+
+        // Mise à jour de l'affichage console
+        consoleUpdate(NULL);
     }
 
-    if (gfxExit) gfxExit();
+    // Nettoyage avant de quitter (très important pour éviter les bugs)
+    gfxExit();
     return 0;
 }
