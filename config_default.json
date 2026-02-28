@@ -1,0 +1,7 @@
+{
+    "version": "1.16.5",
+    "ram": "2500",
+    "auth": "microsoft",
+    "auto_launch": true,
+    "mekanism_path": "/switch/MekanismLauncher/mods/"
+}
