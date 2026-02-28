@@ -8,16 +8,13 @@ NRO       := $(DEVKITPRO)/tools/bin/elf2nro
 TARGET    := MekanismJava
 
 all:
-	@echo "--- VERIFICATION DES CHEMINS ---"
-	@ls -l $(LIBNX)/lib/libnx.a || echo "ERREUR: libnx.a introuvable"
-	@ls -l $(LIBNX)/switch.specs || echo "ERREUR: switch.specs introuvable"
-	@echo "--------------------------------"
 	$(CXX) -O2 -Wall -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE \
 	main.cpp \
-	$(LIBNX)/lib/libnx.a \
 	-I$(LIBNX)/include \
+	-L$(LIBNX)/lib \
 	-specs=$(LIBNX)/switch.specs \
-	-o $(TARGET).elf
+	-o $(TARGET).elf \
+	-lnx
 	$(NRO) $(TARGET).elf $(TARGET).nro --name="Mekanism Java" --author="Dev"
 
 clean:
