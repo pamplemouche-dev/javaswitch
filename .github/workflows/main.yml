@@ -1,0 +1,24 @@
+name: Build Mekanism Game
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Game Dependencies
+        run: |
+          # Installation de SDL2 et des librairies graphiques sur le serveur
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm switch-sdl2 switch-sdl2_image switch-libpng switch-zlib
+      - name: Build
+        run: |
+          export PATH=/opt/devkitpro/devkitA64/bin:/opt/devkitpro/tools/bin:$PATH
+          make clean
+          make
+      - name: Upload NRO
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mekanism-Game-NRO
+          path: ./*.nro
