@@ -1,26 +1,15 @@
 DEVKITPRO := /opt/devkitpro
-PREFIX    := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-
-CC        := $(PREFIX)gcc
-NRO       := $(DEVKITPRO)/tools/bin/elf2nro
+CC        := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-gcc
 NACP      := $(DEVKITPRO)/tools/bin/nacp
 
-TARGET    := MekanismLauncher
-SOURCES   := main.c
-
-# Chemins pour inclure SDL2 (Portlibs)
-CFLAGS    := -O2 -Wall -I$(DEVKITPRO)/libnx/include -I$(DEVKITPRO)/portlibs/switch/include -D__SWITCH__
-LDFLAGS   := -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib -L$(DEVKITPRO)/portlibs/switch/lib
-
-# Bibliothèques nécessaires pour un "vrai" jeu
-LIBS      := -lSDL2_image -lSDL2 -lpng -ljpeg -lz -lnx
+TARGET    := Mekanism
 
 all:
-	@# Création des métadonnées du "Jeu" pour le menu Switch
-	$(NACP) -c --name "Mekanism Launcher" --author "Pamplemouche" --version "1.0.0" $(TARGET).nacp
-	@# Compilation
-	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET).elf $(LDFLAGS) $(LIBS)
-	@# Création du NRO avec icône et infos
-	$(NRO) $(TARGET).elf $(TARGET).nro --nacp=$(TARGET).nacp --name="Mekanism"
+	@# 1. Generation des metadonnees (Nom, Auteur, Version)
+	$(NACP) -c --name "Mekanism" --author "Pamplemouche" --version "1.0.0" $(TARGET).nacp
+	@# 2. Compilation du binaire brut ELF
+	$(CC) -O2 -Wall -I$(DEVKITPRO)/libnx/include main.c -o $(TARGET).elf -specs=$(DEVKITPRO)/libnx/switch.specs -L$(DEVKITPRO)/libnx/lib -lnx
+	@echo "Composants NSP generes avec succes."
 
 clean:
-	rm -f *.elf *.nro *.nacp
+	rm -f *.elf *.nacp
