@@ -10,21 +10,21 @@ jobs:
 
       - name: Compile Native NSP Components
         run: |
-          # 1. Configuration des variables d'environnement
+          # 1. On réinitialise les variables d'environnement proprement
           export DEVKITPRO=/opt/devkitpro
-          export DEVKITARM=$DEVKITPRO/devkitARM
           export DEVKITA64=$DEVKITPRO/devkitA64
-          export PATH=$PATH:$DEVKITPRO/tools/bin:$DEVKITA64/bin
+          # Cette ligne magique cherche où est caché l'outil 'nacp' et l'ajoute au chemin
+          export PATH=$PATH:$(find /opt/devkitpro -name bin -type d | tr '\n' ':')
           
-          # 2. On force la reconnaissance de l'outil nacp
-          chmod +x /opt/devkitpro/tools/bin/nacp
+          # 2. Vérification (pour le debug)
+          echo "Utilisation de gcc depuis : $(which aarch64-none-elf-gcc)"
           
           # 3. Génération du NACP (L'identité du jeu)
-          /opt/devkitpro/tools/bin/nacp -c --name "Mekanism" --author "Pamplemouche" --version "1.0.0" Mekanism.nacp
+          # On utilise 'find' pour être sûr de lancer le bon nacp
+          $(find /opt/devkitpro -name nacp) -c --name "Mekanism" --author "Pamplemouche" --version "1.0.0" Mekanism.nacp
           
-          # 4. Compilation du binaire ELF (Le moteur du jeu)
-          # On utilise les chemins directs pour éviter l'erreur "not found"
-          $DEVKITA64/bin/aarch64-none-elf-gcc -O2 -Wall -I$DEVKITPRO/libnx/include main.c -o Mekanism.elf -specs=$DEVKITPRO/libnx/switch.specs -L$DEVKITPRO/libnx/lib -lnx
+          # 4. Compilation du binaire ELF
+          aarch64-none-elf-gcc -O2 -Wall -I$DEVKITPRO/libnx/include main.c -o Mekanism.elf -specs=$DEVKITPRO/libnx/switch.specs -L$DEVKITPRO/libnx/lib -lnx
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
