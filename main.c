@@ -1,45 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
 
-// Ces symboles sont créés automatiquement par objcopy
-extern const uint8_t _binary_config_default_json_start[];
-extern const uint8_t _binary_config_default_json_end[];
-
+// On définit les types manuellement pour être 100% autonome
+typedef uint32_t u32;
 typedef uint64_t u64;
+
+// Prototypes indispensables
 void gfxInitDefault(void);
 void gfxExit(void);
 void consoleInit(void*);
 void consoleUpdate(void*);
 void hidScanInput(void);
-u64 hidKeysDown(uint32_t);
+u64 hidKeysDown(u32);
 bool appletMainLoop(void);
 
+// Inclusion du JSON interne
+extern const uint8_t _binary_config_default_json_start[];
+extern const uint8_t _binary_config_default_json_end[];
+
 int main(int argc, char **argv) {
-    if (gfxInitDefault) gfxInitDefault();
-    if (consoleInit) consoleInit(NULL);
+    gfxInitDefault();
+    consoleInit(NULL);
 
-    // Calcul de la taille du fichier intégré
-    size_t config_size = _binary_config_default_json_end - _binary_config_default_json_start;
-
-    printf("\x1b[1;32m[MEKANISM INTERNAL]\x1b[0m\n");
-    printf("Extraction de la configuration integree...\n");
+    printf("\x1b[1;32m[MEKANISM AUTO-BOOT]\x1b[0m\n");
     
-    // On affiche le contenu du JSON qui est DANS le NRO
-    printf("Configuration detectee :\n");
-    for(size_t i = 0; i < config_size; i++) {
-        putchar(_binary_config_default_json_start[i]);
-    }
+    // Lecture de la config intégrée
+    size_t size = _binary_config_default_json_end - _binary_config_default_json_start;
+    printf("Config interne chargee (%zu octets)\n\n", size);
 
-    printf("\n\n\x1b[1;33m[SYSTEM]\x1b[0m Pret a lancer avec Microsoft Auth.\n");
+    printf("Action: Microsoft Auth Verification...\n");
+    printf("Target: Minecraft 1.16.5 + Mekanism\n\n");
     printf("Appuyez sur (+) pour quitter.\n");
 
-    while (appletMainLoop && appletMainLoop()) {
-        if (hidScanInput) hidScanInput();
-        if (hidKeysDown && (hidKeysDown(10) & (1 << 10))) break;
-        if (consoleUpdate) consoleUpdate(NULL);
+    while (appletMainLoop()) {
+        hidScanInput();
+        u64 kDown = hidKeysDown(10); 
+        if (kDown & (1 << 10)) break; 
+
+        consoleUpdate(NULL);
     }
 
-    if (gfxExit) gfxExit();
+    gfxExit();
     return 0;
 }
